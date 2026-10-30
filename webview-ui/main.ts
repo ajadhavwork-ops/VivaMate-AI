@@ -19,7 +19,7 @@ import {
   setBusy,
   showOverviewLoading,
 } from './views/overview';
-import { initExplorer } from './views/explorerView';
+import { initExplorer, renderExplorerError, setExplorerData, showExplorerLoading } from './views/explorerView';
 import { initAssistant } from './views/assistantView';
 import { initPrep } from './views/prepView';
 import { initMockViva } from './views/mockVivaView';
@@ -90,6 +90,7 @@ window.addEventListener('message', (event: MessageEvent) => {
     }
     case 'analysisStarted': {
       showOverviewLoading();
+      showExplorerLoading();
       setStatus('analyzing…');
       // Jump to Overview so the user sees progress.
       activeView = 'overview';
@@ -99,6 +100,7 @@ window.addEventListener('message', (event: MessageEvent) => {
     }
     case 'analysis': {
       renderAnalysis(message.payload);
+      setExplorerData(message.payload);
       setStatus('ready');
       setBusy(false);
       return;
@@ -106,6 +108,7 @@ window.addEventListener('message', (event: MessageEvent) => {
     case 'error': {
       logEntry(`Analysis failed: ${message.payload.message}`, 'error');
       renderOverviewError(message.payload.message);
+      renderExplorerError(message.payload.message);
       setStatus('error');
       setBusy(false);
       return;

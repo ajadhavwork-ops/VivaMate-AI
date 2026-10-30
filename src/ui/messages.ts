@@ -24,6 +24,13 @@ export interface AnalysisSummary {
   manifests: Array<{ ecosystem: string; relativePath: string }>;
   entryPoints: string[];
   keyFiles: string[];
+  /**
+   * Explorer data — the complete privacy-filtered file list. Optional so
+   * summaries produced before P2.3 (and older cached profiles) stay valid.
+   */
+  allFiles?: Array<{ relativePath: string; sizeBytes: number }>;
+  /** True when allFiles was capped (partial list). */
+  allFilesTruncated?: boolean;
 }
 
 export interface AnalysisError {

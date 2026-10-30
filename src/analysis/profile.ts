@@ -30,6 +30,14 @@ export interface ProjectProfile {
   /** True when the walk stopped early (cap on files or depth). */
   limitReached: boolean;
   /**
+   * The complete kept-file list (paths + sizes, privacy-filtered) for the
+   * Explorer. Optional so profiles saved before P2.3 stay loadable; capped
+   * at MAX_ALL_FILES with allFilesTruncated noting the cut.
+   */
+  allFiles?: WalkedFile[];
+  /** True when allFiles hit its cap and the list is incomplete. */
+  allFilesTruncated?: boolean;
+  /**
    * Actual dependency names collected from the project's package.json
    * (optional — absent when no package.json exists or it was unreadable).
    */
@@ -86,6 +94,12 @@ export interface BuildProfileArgs {
   limitReached: boolean;
 }
 
+/**
+ * Upper bound for the Explorer file list kept in the profile. Matches the
+ * walker's default file cap, so in normal operation nothing is truncated.
+ */
+export const MAX_ALL_FILES = 5000;
+
 export function buildProfile(args: BuildProfileArgs): ProjectProfile {
   const totalSizeBytes = args.files.reduce((sum, f) => sum + f.sizeBytes, 0);
   const profile: ProjectProfile = {
@@ -111,6 +125,16 @@ export function buildProfile(args: BuildProfileArgs): ProjectProfile {
   if (technologies.length > 0) {
     profile.technologies = technologies.slice(0, 12);
   }
+  // Explorer data: keep plain-path copies so the persisted profile does not
+  // share array references with the walk result, capped for safety.
+  if (args.files.length > 0) {
+    if (args.files.length > MAX_ALL_FILES) {
+      profile.allFiles = args.files.slice(0, MAX_ALL_FILES);
+      profile.allFilesTruncated = true;
+    } else {
+      profile.allFiles = [...args.files];
+    }
+  }
   return profile;
 }
 
@@ -132,5 +156,7 @@ export function toSummary(profile: ProjectProfile): AnalysisSummary {
     manifests: profile.manifests,
     entryPoints: profile.entryPoints,
     keyFiles: profile.keyFiles.slice(0, 12),
+    allFiles: profile.allFiles?.map((f) => ({ relativePath: f.relativePath, sizeBytes: f.sizeBytes })),
+    allFilesTruncated: profile.allFilesTruncated,
   };
 }

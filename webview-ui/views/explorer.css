@@ -1,0 +1,186 @@
+/* ============================================================================
+   Project Explorer styles (Phase 2.3) — search, filters, file tree.
+   Colors/sizes come from tokens in design/theme.css.
+   ========================================================================== */
+
+/* --- Search bar ------------------------------------------------------------ */
+
+.vm-search {
+  display: flex;
+  align-items: center;
+  gap: var(--vm-space-2);
+  padding: var(--vm-space-2) var(--vm-space-3);
+  background: var(--vm-overlay-soft);
+  border: 1px solid var(--vm-border);
+  border-radius: var(--vm-radius-md);
+  transition: border-color var(--vm-t-fast) var(--vm-ease);
+}
+
+.vm-search:focus-within {
+  border-color: var(--vm-accent);
+}
+
+.vm-search-icon {
+  display: inline-flex;
+  color: var(--vm-text-dim);
+  flex: none;
+}
+
+.vm-search-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: var(--vm-text);
+  font-family: inherit;
+  font-size: 0.95em;
+  padding: 2px 0;
+}
+
+.vm-search-input:focus {
+  outline: none;
+}
+
+.vm-search-input::placeholder {
+  color: var(--vm-text-dim);
+}
+
+/* --- Category filter chips --------------------------------------------------- */
+
+.vm-filters {
+  margin-top: var(--vm-space-2);
+}
+
+.vm-filter-chip {
+  font-family: inherit;
+  font-size: 0.8em;
+  cursor: pointer;
+  transition:
+    border-color var(--vm-t-fast) var(--vm-ease),
+    background var(--vm-t-fast) var(--vm-ease),
+    color var(--vm-t-fast) var(--vm-ease);
+}
+
+.vm-filter-chip:hover:not(:disabled) {
+  border-color: var(--vscode-textLink-foreground);
+  background: var(--vm-accent-soft);
+}
+
+.vm-filter-chip.is-active {
+  color: var(--vm-accent-contrast);
+  background: var(--vscode-button-background);
+  border-color: transparent;
+}
+
+.vm-filter-chip:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.vm-filter-chip:focus-visible {
+  outline: none;
+  box-shadow: var(--vm-focus-ring);
+}
+
+/* --- Counts line ---------------------------------------------------------------- */
+
+.vm-counts {
+  margin: var(--vm-space-2) 0 0;
+}
+
+/* --- Tree ------------------------------------------------------------------------ */
+
+.vm-explorer-content {
+  margin-top: var(--vm-space-2);
+}
+
+.vm-tree {
+  background: var(--vm-overlay-soft);
+  border: 1px solid var(--vm-border);
+  border-radius: var(--vm-radius-md);
+  overflow: hidden;
+  padding: var(--vm-space-1) 0;
+}
+
+.vm-tree-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  padding: 3px 6px 3px 0;
+  border: none;
+  background: transparent;
+  color: var(--vm-text);
+  font-family: inherit;
+  font-size: 0.92em;
+  text-align: left;
+  cursor: pointer;
+  min-width: 0;
+  transition: background var(--vm-t-fast) var(--vm-ease);
+}
+
+.vm-tree-row:hover {
+  background: var(--vm-overlay-soft);
+}
+
+.vm-tree-row:focus-visible {
+  outline: none;
+  background: var(--vm-accent-soft);
+  box-shadow: inset var(--vm-focus-ring);
+}
+
+.vm-tree-row--folder .vm-tree-name {
+  font-weight: 600;
+}
+
+.vm-tree-chev {
+  display: inline-flex;
+  flex: none;
+  color: var(--vm-text-dim);
+  opacity: 0.7;
+  transition: transform var(--vm-t-fast) var(--vm-ease);
+}
+
+.vm-tree-chev.is-open {
+  transform: rotate(90deg);
+}
+
+.vm-tree-chev--spacer {
+  visibility: hidden;
+}
+
+.vm-tree-icon {
+  display: inline-flex;
+  flex: none;
+  color: var(--vm-text-dim);
+}
+
+.vm-tree-row--folder .vm-tree-icon {
+  color: var(--vscode-charts-blue, var(--vm-accent));
+}
+
+.vm-tree-name {
+  flex: none;
+  max-width: 55%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vm-tree-meta {
+  margin-left: auto;
+  flex: none;
+  font-family: var(--vm-font-mono);
+  font-size: 0.85em;
+  color: var(--vm-text-dim);
+}
+
+/* Narrow-sidebar adjustments */
+@media (max-width: 250px) {
+  .vm-tree-name {
+    max-width: 45%;
+  }
+  .vm-tree-meta {
+    display: none; /* sizes hide first; tooltips still carry them */
+  }
+}

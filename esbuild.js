@@ -8,7 +8,7 @@ const fs = require('fs');
 const path = require('path');
 
 /** CSS merged into dist/webview/styles.css, in cascade order. */
-const CSS_SOURCES = ['design/theme.css', 'design/components.css', 'styles.css'];
+const CSS_SOURCES = ['design/theme.css', 'design/components.css', 'views/explorer.css', 'styles.css'];
 
 const watch = process.argv.includes('--watch');
 const isProd = process.env.NODE_ENV === 'production';

@@ -31,6 +31,9 @@ export const ICONS = {
   /** Refresh / analyze */
   refresh: `<svg ${base}><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><path d="M13.5 1.5v3h-3"/></svg>`,
 
+  /** Chevron (tree expand/collapse) */
+  chevron: `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 4l4 4-4 4"/></svg>`,
+
   /** Warning */
   alert: `<svg ${base}><path d="M8 1.5L14.5 13.5H1.5z"/><path d="M8 6v3.5" stroke-width="1.6"/><circle cx="8" cy="11.6" r="0.5" fill="currentColor" stroke="none"/></svg>`,
 
