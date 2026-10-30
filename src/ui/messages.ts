@@ -11,7 +11,15 @@ export interface AnalysisSummary {
   generatedAt: string;
   workspaceName: string;
   totalFiles: number;
+  totalSizeBytes?: number;
   limitReached: boolean;
+  /** Stable, cheap fingerprint that changes when the project tree changes. */
+  fingerprint?: string;
+  /**
+   * Actual dependency names from the project's package.json (top N).
+   * Optional — only present when a package.json was analyzable.
+   */
+  technologies?: string[];
   languages: Array<{ name: string; files: number; totalBytes: number }>;
   manifests: Array<{ ecosystem: string; relativePath: string }>;
   entryPoints: string[];

@@ -10,21 +10,32 @@
   <link rel="stylesheet" href="%STYLE%" />
 </head>
 <body>
-  <header class="header">
-    <h1>VivaMate AI</h1>
-    <span class="badge" id="status">ready</span>
+  <header class="vm-header">
+    <div class="vm-header-brand">
+      <span class="vm-header-logo" id="logo" aria-hidden="true"></span>
+      <h1>VivaMate AI</h1>
+    </div>
+    <span class="vm-badge" id="status">ready</span>
   </header>
 
-  <main class="content">
-    <p class="hint">
-      Understand your project, generate viva questions, and practise mock vivas —
-      grounded in <strong>this workspace</strong>.
-    </p>
+  <nav id="nav" aria-label="VivaMate sections"></nav>
 
-    <button id="analyzeBtn" class="primary" type="button">Analyze workspace</button>
+  <main class="vm-views">
+    <!-- Overview: keeps Phase 1 element ids so the analysis flow is untouched -->
+    <section id="view-overview" class="vm-view" role="tabpanel" aria-labelledby="nav-overview" aria-live="polite">
+      <p class="hint">
+        Understand your project, generate viva questions, and practise mock vivas —
+        grounded in <strong>this workspace</strong>. Nothing leaves your machine.
+      </p>
+      <button id="analyzeBtn" type="button">Analyze workspace</button>
+      <section id="overview" class="overview" hidden></section>
+      <section id="output" class="output vm-log" aria-live="polite"></section>
+    </section>
 
-    <section id="overview" class="overview" hidden></section>
-    <section id="output" class="output" aria-live="polite"></section>
+    <section id="view-explorer" class="vm-view" role="tabpanel" aria-labelledby="nav-explorer" hidden></section>
+    <section id="view-assistant" class="vm-view" role="tabpanel" aria-labelledby="nav-assistant" hidden></section>
+    <section id="view-prep" class="vm-view" role="tabpanel" aria-labelledby="nav-prep" hidden></section>
+    <section id="view-mock" class="vm-view" role="tabpanel" aria-labelledby="nav-mock" hidden></section>
   </main>
 
   <script nonce="%NONCE%" src="%SCRIPT%"></script>

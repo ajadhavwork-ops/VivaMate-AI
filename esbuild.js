@@ -1,10 +1,14 @@
 // esbuild.js — bundles both entry points:
 //   src/extension.ts    -> dist/extension.js    (Node.js, inside VS Code)
 //   webview-ui/main.ts  -> dist/webview/main.js (browser, inside the webview)
-// Static assets (index.html, styles.css) are copied to dist/webview/.
+// Static assets: index.html + MERGED styles.css (design tokens + components
+// + base) are copied to dist/webview/.
 const esbuild = require('esbuild');
 const fs = require('fs');
 const path = require('path');
+
+/** CSS merged into dist/webview/styles.css, in cascade order. */
+const CSS_SOURCES = ['design/theme.css', 'design/components.css', 'styles.css'];
 
 const watch = process.argv.includes('--watch');
 const isProd = process.env.NODE_ENV === 'production';
@@ -53,7 +57,12 @@ function copyAssets() {
   const dest = path.join(__dirname, 'dist', 'webview');
   fs.mkdirSync(dest, { recursive: true });
   fs.copyFileSync(path.join(__dirname, 'webview-ui', 'index.html'), path.join(dest, 'index.html'));
-  fs.copyFileSync(path.join(__dirname, 'webview-ui', 'styles.css'), path.join(dest, 'styles.css'));
+  // Webview styles are split by concern but delivered as ONE stylesheet so
+  // panelHost keeps a single %STYLE% link (no changes needed there).
+  const css = CSS_SOURCES.map(
+    (relative) => fs.readFileSync(path.join(__dirname, 'webview-ui', relative), 'utf8')
+  ).join('\n\n');
+  fs.writeFileSync(path.join(dest, 'styles.css'), css, 'utf8');
 }
 
 copyAssets();

@@ -29,6 +29,11 @@ export interface ProjectProfile {
   totalSizeBytes: number;
   /** True when the walk stopped early (cap on files or depth). */
   limitReached: boolean;
+  /**
+   * Actual dependency names collected from the project's package.json
+   * (optional — absent when no package.json exists or it was unreadable).
+   */
+  technologies?: string[];
   languages: LanguageStat[];
   manifests: DetectedManifest[];
   entryPoints: string[];
@@ -83,7 +88,7 @@ export interface BuildProfileArgs {
 
 export function buildProfile(args: BuildProfileArgs): ProjectProfile {
   const totalSizeBytes = args.files.reduce((sum, f) => sum + f.sizeBytes, 0);
-  return {
+  const profile: ProjectProfile = {
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
     fingerprint: computeFingerprint({
@@ -100,6 +105,13 @@ export function buildProfile(args: BuildProfileArgs): ProjectProfile {
     entryPoints: [...args.entryPoints],
     keyFiles: args.plan.map((item) => item.relativePath),
   };
+  // Only REAL dependency names (from an analyzable package.json) surface
+  // here — never inventions. Old cached profiles keep working (optional).
+  const technologies = args.pkgSummary?.dependencies ?? [];
+  if (technologies.length > 0) {
+    profile.technologies = technologies.slice(0, 12);
+  }
+  return profile;
 }
 
 /** Trimmed view sent to the webview (keeps the message payload small). */
@@ -108,6 +120,9 @@ export function toSummary(profile: ProjectProfile): AnalysisSummary {
     generatedAt: profile.generatedAt,
     workspaceName: profile.workspaceName,
     totalFiles: profile.totalFiles,
+    totalSizeBytes: profile.totalSizeBytes,
+    fingerprint: profile.fingerprint,
+    technologies: profile.technologies,
     limitReached: profile.limitReached,
     languages: profile.languages.slice(0, 8).map((l) => ({
       name: l.name,

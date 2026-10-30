@@ -1,0 +1,75 @@
+/* ============================================================================
+   VivaMate design tokens (Phase 2.1)
+   Layered ON TOP of VS Code theme variables so dark/light/high-contrast
+   themes integrate natively. Never hard-code RGB brand colors here.
+   ========================================================================== */
+
+:root {
+  /* --- Typography -------------------------------------------------------- */
+  --vm-font-ui: var(--vscode-font-family);
+  --vm-font-mono: var(--vscode-editor-font-family, ui-monospace, monospace);
+  --vm-text: var(--vscode-foreground);
+  --vm-text-dim: var(--vscode-descriptionForeground);
+
+  /* --- Surfaces ---------------------------------------------------------- */
+  --vm-surface: var(--vscode-sideBar-background);
+  --vm-surface-raised: var(--vscode-sideBarSectionHeader-background, rgba(128, 128, 128, 0.06));
+  --vm-border: var(--vscode-panel-border, rgba(128, 128, 128, 0.25));
+
+  /*
+   * Elevation tints — white/black overlays that work on both light and dark
+   * theme backgrounds. color-mix() wins on modern VS Code (Electron ≥ 111);
+   * the rgba() declared first is the fallback.
+   */
+  --vm-overlay-strong: rgba(0, 0, 0, 0.14);
+  --vm-overlay-strong: color-mix(in srgb, currentColor 12%, transparent);
+  --vm-overlay-soft: rgba(128, 128, 128, 0.08);
+  --vm-overlay-soft: color-mix(in srgb, currentColor 6%, transparent);
+
+  /* --- Accents & states --------------------------------------------------- */
+  --vm-accent: var(--vscode-focusBorder, var(--vscode-button-background));
+  --vm-accent-contrast: var(--vscode-button-foreground, #ffffff);
+  --vm-accent-soft: rgba(128, 128, 128, 0.14);
+  --vm-accent-soft: color-mix(in srgb, var(--vm-accent) 18%, transparent);
+  --vm-danger: var(--vscode-errorForeground);
+  --vm-success: var(--vscode-testing-iconPassed, var(--vscode-charts-green, #4ec9b0));
+  --vm-warning: var(--vscode-charts-orange, #d18616);
+
+  /* --- Shape ------------------------------------------------------------- */
+  --vm-radius-sm: 4px;
+  --vm-radius-md: 8px;
+  --vm-radius-lg: 12px;
+  --vm-radius-pill: 999px;
+
+  /* --- Spacing scale (4px base) ------------------------------------------ */
+  --vm-space-1: 4px;
+  --vm-space-2: 8px;
+  --vm-space-3: 12px;
+  --vm-space-4: 16px;
+  --vm-space-5: 20px;
+  --vm-space-6: 24px;
+
+  /* --- Motion ------------------------------------------------------------ */
+  --vm-t-fast: 120ms;
+  --vm-t-med: 200ms;
+  --vm-ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* --- Component sizing --------------------------------------------------- */
+  --vm-nav-height: 34px;
+  --vm-focus-ring: 0 0 0 1px var(--vm-accent);
+}
+
+/* Respect users who prefer reduced motion (VS Code setting or OS). */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --vm-t-fast: 1ms;
+    --vm-t-med: 1ms;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}

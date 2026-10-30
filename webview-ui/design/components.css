@@ -1,0 +1,696 @@
+/* ============================================================================
+   VivaMate component styles (Phase 2.1)
+   Header, nav rail, cards, tiles, chips, badges, bars, lists, empty states.
+   All colors come from tokens in theme.css.
+   ========================================================================== */
+
+/* --- Global reset & base ------------------------------------------------- */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  padding: 0;
+  margin: 0;
+  color: var(--vm-text);
+  font-family: var(--vm-font-ui);
+  font-size: var(--vscode-font-size, 13px);
+  background: var(--vm-surface);
+}
+
+/* --- Header --------------------------------------------------------------- */
+
+.vm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--vm-space-2);
+  padding: var(--vm-space-3) var(--vm-space-4);
+  border-bottom: 1px solid var(--vm-border);
+  background: linear-gradient(180deg, var(--vm-surface-raised), transparent);
+}
+
+.vm-header-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--vm-space-2);
+  min-width: 0;
+}
+
+.vm-header-logo {
+  display: inline-flex;
+  color: var(--vm-accent);
+  filter: drop-shadow(0 0 6px var(--vm-accent-soft));
+}
+
+.vm-header-logo svg {
+  display: block;
+}
+
+.vm-header h1 {
+  font-size: 1.05em;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin: 0;
+  white-space: nowrap;
+}
+
+/* --- Navigation rail ------------------------------------------------------ */
+
+.vm-nav {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 2px;
+  padding: var(--vm-space-2) var(--vm-space-2) 0;
+  border-bottom: 1px solid var(--vm-border);
+}
+
+.vm-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: calc(var(--vm-space-2) - 2px) 0;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--vm-text-dim);
+  font-family: inherit;
+  font-size: 0.72em;
+  cursor: pointer;
+  border-radius: var(--vm-radius-sm) var(--vm-radius-sm) 0 0;
+  transition:
+    color var(--vm-t-fast) var(--vm-ease),
+    background var(--vm-t-fast) var(--vm-ease),
+    border-color var(--vm-t-med) var(--vm-ease);
+}
+
+.vm-nav-item:hover {
+  color: var(--vm-text);
+  background: var(--vm-overlay-soft);
+}
+
+.vm-nav-item.is-active {
+  color: var(--vm-text);
+  border-bottom-color: var(--vm-accent);
+}
+
+.vm-nav-item .vm-nav-icon {
+  display: inline-flex;
+  transition: transform var(--vm-t-fast) var(--vm-ease);
+}
+
+.vm-nav-item:hover .vm-nav-icon {
+  transform: translateY(-1px) scale(1.06);
+}
+
+.vm-nav-item.is-active .vm-nav-icon {
+  color: var(--vm-accent);
+}
+
+.vm-nav-item:focus-visible {
+  outline: none;
+  box-shadow: var(--vm-focus-ring);
+  border-radius: var(--vm-radius-sm);
+}
+
+/* --- View containers ------------------------------------------------------ */
+
+.vm-views {
+  padding: var(--vm-space-4);
+}
+
+.vm-view {
+  animation: vm-view-in var(--vm-t-med) var(--vm-ease);
+}
+
+.vm-view[hidden] {
+  display: none;
+}
+
+@keyframes vm-view-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* --- Buttons --------------------------------------------------------------- */
+
+.vm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--vm-space-2);
+  padding: 6px 12px;
+  font-family: inherit;
+  font-size: 1em;
+  cursor: pointer;
+  border: none;
+  border-radius: var(--vm-radius-sm);
+  transition:
+    background var(--vm-t-fast) var(--vm-ease),
+    transform var(--vm-t-fast) var(--vm-ease),
+    box-shadow var(--vm-t-fast) var(--vm-ease);
+}
+
+.vm-btn--primary {
+  color: var(--vm-accent-contrast);
+  background: var(--vscode-button-background);
+}
+
+.vm-btn--primary:hover:not(:disabled) {
+  background: var(--vscode-button-hoverBackground);
+  box-shadow: 0 0 0 1px var(--vm-accent-soft);
+  transform: translateY(-1px);
+}
+
+.vm-btn--primary:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.vm-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--vm-focus-ring);
+}
+
+/* --- Cards ------------------------------------------------------------------ */
+
+.vm-card {
+  margin-top: var(--vm-space-4);
+  padding: var(--vm-space-3) var(--vm-space-4);
+  background: var(--vm-overlay-soft);
+  border: 1px solid var(--vm-border);
+  border-radius: var(--vm-radius-lg);
+  transition: border-color var(--vm-t-med) var(--vm-ease);
+}
+
+.vm-card:hover {
+  border-color: color-mix(in srgb, var(--vm-accent) 45%, var(--vm-border));
+}
+
+.vm-card-header {
+  display: flex;
+  align-items: center;
+  gap: var(--vm-space-2);
+  margin-bottom: var(--vm-space-2);
+}
+
+.vm-card-icon {
+  display: inline-flex;
+  color: var(--vm-accent);
+}
+
+.vm-card-title {
+  font-size: 1em;
+  font-weight: 600;
+  margin: 0;
+}
+
+.vm-card-body {
+  min-width: 0;
+}
+
+.vm-dashboard-sub {
+  margin: 0;
+  color: var(--vm-text-dim);
+}
+
+/* --- Metric tiles ------------------------------------------------------------ */
+
+.vm-tiles {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--vm-space-2);
+  margin-top: var(--vm-space-3);
+}
+
+.vm-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--vm-space-2) 0;
+  background: var(--vm-overlay-soft);
+  border: 1px solid var(--vm-border);
+  border-radius: var(--vm-radius-md);
+  transition: border-color var(--vm-t-fast) var(--vm-ease);
+}
+
+.vm-tile:hover {
+  border-color: var(--vm-accent-soft);
+}
+
+.vm-tile-value {
+  font-size: 1.25em;
+  font-weight: 700;
+  color: var(--vm-accent);
+  line-height: 1.1;
+}
+
+.vm-tile-label {
+  font-size: 0.72em;
+  color: var(--vm-text-dim);
+  text-align: center;
+}
+
+/* --- Chips & badges ------------------------------------------------------------ */
+
+.vm-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  font-size: 0.9em;
+  color: var(--vm-text);
+  background: var(--vm-overlay-soft);
+  border: 1px solid var(--vm-border);
+  border-radius: var(--vm-radius-pill);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vm-chip--clickable {
+  color: var(--vscode-textLink-foreground);
+  cursor: pointer;
+  transition:
+    border-color var(--vm-t-fast) var(--vm-ease),
+    background var(--vm-t-fast) var(--vm-ease);
+}
+
+.vm-chip--clickable:hover {
+  border-color: var(--vscode-textLink-foreground);
+  background: var(--vm-accent-soft);
+  text-decoration: none;
+}
+
+.vm-chip-icon {
+  display: inline-flex;
+  opacity: 0.75;
+}
+
+.vm-chiprow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--vm-space-2);
+}
+
+.vm-badge {
+  font-size: 0.85em;
+  padding: 2px 10px;
+  border-radius: var(--vm-radius-pill);
+  background: var(--vscode-badge-background);
+  color: var(--vscode-badge-foreground);
+  white-space: nowrap;
+}
+
+/* --- Language share bars --------------------------------------------------------- */
+
+.vm-barlist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--vm-space-1);
+}
+
+.vm-barlist-row {
+  display: grid;
+  grid-template-columns: 84px 1fr auto;
+  align-items: center;
+  gap: var(--vm-space-2);
+}
+
+.vm-barlist-name {
+  font-size: 0.9em;
+  color: var(--vm-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vm-barlist-count {
+  font-size: 0.85em;
+  color: var(--vm-text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.vm-progress {
+  position: relative;
+  height: 6px;
+  border-radius: var(--vm-radius-pill);
+  background: var(--vm-overlay-strong);
+  overflow: hidden;
+}
+
+.vm-progress-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: var(--vm-radius-pill);
+  background: var(--vm-accent);
+  transition: width var(--vm-t-med) var(--vm-ease);
+}
+
+/* --- File lists & links ------------------------------------------------------------ */
+
+.vm-filelist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.vm-filelist li {
+  padding: 3px 0;
+  border-top: 1px solid transparent;
+}
+
+.vm-filelist li + li {
+  border-top-color: var(--vm-overlay-soft);
+}
+
+.vm-filelink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--vscode-textLink-foreground);
+  cursor: pointer;
+  word-break: break-all;
+  font-family: var(--vm-font-mono);
+  font-size: 0.92em;
+  border-radius: var(--vm-radius-sm);
+  padding: 1px 4px;
+  transition: background var(--vm-t-fast) var(--vm-ease);
+}
+
+.vm-filelink:hover {
+  background: var(--vm-accent-soft);
+}
+
+.vm-filelink:focus-visible {
+  outline: none;
+  box-shadow: var(--vm-focus-ring);
+}
+
+.vm-filelink-icon {
+  display: inline-flex;
+  opacity: 0.65;
+  flex: none;
+}
+
+/* --- Empty states -------------------------------------------------------------------- */
+
+.vm-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--vm-space-2);
+  padding: var(--vm-space-6) var(--vm-space-3);
+  text-align: center;
+}
+
+.vm-empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  color: var(--vm-accent);
+  background: var(--vm-accent-soft);
+  border-radius: var(--vm-radius-lg);
+}
+
+.vm-empty-title {
+  margin: 0;
+  font-weight: 600;
+}
+
+.vm-empty-hint {
+  margin: 0;
+  max-width: 260px;
+  color: var(--vm-text-dim);
+  font-size: 0.92em;
+  line-height: 1.45;
+}
+
+/* --- Skeleton shimmer ------------------------------------------------------------------ */
+
+.vm-loading-title {
+  font-size: 1em;
+  font-weight: 600;
+  margin: var(--vm-space-2) 0 var(--vm-space-4);
+}
+
+.vm-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vm-space-3);
+}
+
+.vm-skeleton-line {
+  height: 12px;
+  border-radius: var(--vm-radius-pill);
+  background: linear-gradient(
+    90deg,
+    var(--vm-overlay-soft) 0%,
+    var(--vm-overlay-strong) 40%,
+    var(--vm-overlay-soft) 80%
+  );
+  background-size: 200% 100%;
+  animation: vm-shimmer 1.4s linear infinite;
+}
+
+.vm-skeleton-line--wide {
+  width: 60%;
+}
+
+.vm-skeleton-line--auto {
+  width: 35%;
+}
+
+@keyframes vm-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* ============================================================================
+   Overview dashboard specifics (Phase 2.2)
+   ========================================================================== */
+
+/* --- Hero ------------------------------------------------------------------ */
+
+.vm-hero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vm-space-2);
+  padding: var(--vm-space-4);
+  margin-top: var(--vm-space-4);
+  background:
+    linear-gradient(135deg, var(--vm-accent-soft), transparent 55%),
+    var(--vm-overlay-soft);
+  border: 1px solid var(--vm-border);
+  border-radius: var(--vm-radius-lg);
+}
+
+.vm-hero--loading {
+  flex-direction: row;
+  align-items: center;
+}
+
+.vm-hero-titlerow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--vm-space-2);
+  min-width: 0;
+}
+
+.vm-hero-title {
+  margin: 0;
+  font-size: 1.1em;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vm-hero-sub {
+  margin: 0;
+  color: var(--vm-text-dim);
+  font-size: 0.9em;
+}
+
+.vm-hero-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.vm-fingerprint {
+  align-self: flex-start;
+  font-family: var(--vm-font-mono);
+  font-size: 0.8em;
+  color: var(--vm-text-dim);
+  background: var(--vm-overlay-soft);
+  border: 1px dashed var(--vm-border);
+  border-radius: var(--vm-radius-pill);
+  padding: 1px 8px;
+  cursor: default;
+  user-select: text; /* students may want to copy it */
+}
+
+/* --- Status pills ------------------------------------------------------------- */
+
+.vm-pill {
+  flex: none;
+  font-size: 0.72em;
+  font-weight: 600;
+  padding: 2px 9px;
+  border-radius: var(--vm-radius-pill);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.vm-pill--ok {
+  color: var(--vm-success);
+  background: color-mix(in srgb, var(--vm-success) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--vm-success) 40%, transparent);
+}
+
+.vm-pill--warning {
+  color: var(--vm-warning);
+  background: color-mix(in srgb, var(--vm-warning) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--vm-warning) 45%, transparent);
+}
+
+/* --- Spinner -------------------------------------------------------------------- */
+
+.vm-spinner {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-right: var(--vm-space-3);
+  border-radius: 50%;
+  border: 2px solid var(--vm-accent-soft);
+  border-top-color: var(--vm-accent);
+  animation: vm-spin 0.9s linear infinite;
+}
+
+@keyframes vm-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* --- Banners ----------------------------------------------------------------------- */
+
+.vm-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--vm-space-2);
+  padding: var(--vm-space-2) var(--vm-space-3);
+  margin-top: var(--vm-space-4);
+  border-radius: var(--vm-radius-md);
+  border: 1px solid transparent;
+}
+
+.vm-banner--warning {
+  color: var(--vm-warning);
+  background: color-mix(in srgb, var(--vm-warning) 10%, transparent);
+  border-color: color-mix(in srgb, var(--vm-warning) 40%, transparent);
+}
+
+.vm-banner-icon {
+  display: inline-flex;
+  padding-top: 2px;
+}
+
+.vm-banner-dot {
+  width: 8px;
+  height: 8px;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.vm-banner-text {
+  margin: 0;
+  font-size: 0.9em;
+  line-height: 1.4;
+}
+
+/* --- Cards: subtitles, dividers, danger ---------------------------------------------- */
+
+.vm-cardsubtitle {
+  font-size: 0.75em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--vm-text-dim);
+  margin: 0 0 var(--vm-space-2);
+}
+
+.vm-carddivider {
+  height: 1px;
+  background: var(--vm-overlay-soft);
+  margin: var(--vm-space-3) 0;
+}
+
+.vm-card--danger {
+  border-color: color-mix(in srgb, var(--vm-danger) 55%, transparent);
+}
+
+.vm-error-message {
+  margin: 0 0 var(--vm-space-3);
+  color: var(--vm-danger);
+  font-size: 0.92em;
+  word-break: break-word;
+}
+
+.vm-muted {
+  margin: 0;
+  color: var(--vm-text-dim);
+  font-size: 0.88em;
+}
+
+/* --- Responsive tiles (narrow sidebars) ----------------------------------------------- */
+
+.vm-tiles {
+  grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
+}
+
+@media (max-width: 240px) {
+  .vm-tiles {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .vm-hero--loading {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .vm-spinner {
+    margin: 0;
+  }
+}
+
+/* --- Empty/error layout --------------------------------------------------------- */
+
+.vm-empty-layout {
+  display: flex;
+  flex-direction: column;
+}
