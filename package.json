@@ -1,0 +1,120 @@
+{
+  "name": "viva-mate",
+  "displayName": "VivaMate AI",
+  "description": "Understand your own software project, prepare presentations, and practise viva examinations — grounded in your repository.",
+  "version": "0.0.1",
+  "publisher": "vivamate",
+  "license": "MIT",
+  "repository": {
+  "type": "git",
+  "url": "https://github.com/ajadhavwork-ops/VivaMate-AI.git"
+  },
+  "engines": {
+    "vscode": "^1.95.0",
+    "node": ">=18"
+  },
+  "categories": [
+    "Other",
+    "Education"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "vivaMate",
+          "title": "VivaMate AI",
+          "icon": "media/vivamate.svg"
+        }
+      ]
+    },
+    "views": {
+      "vivaMate": [
+        {
+          "type": "webview",
+          "id": "vivaMate.panel",
+          "name": "VivaMate"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "vivaMate.analyze",
+        "title": "Analyze Workspace",
+        "category": "VivaMate"
+      },
+      {
+        "command": "vivaMate.focusPanel",
+        "title": "Open VivaMate Panel",
+        "category": "VivaMate"
+      }
+    ],
+    "configuration": {
+      "title": "VivaMate AI",
+      "properties": {
+        "vivaMate.provider": {
+          "type": "string",
+          "enum": [
+            "vscode-lm",
+            "openai-compatible",
+            "ollama"
+          ],
+          "default": "vscode-lm",
+          "description": "AI provider used for explanations and viva questions."
+        },
+        "vivaMate.model": {
+          "type": "string",
+          "default": "",
+          "description": "Model identifier for the selected provider (empty = provider default)."
+        },
+        "vivaMate.analysisBudgetKb": {
+          "type": "number",
+          "default": 64,
+          "minimum": 8,
+          "maximum": 512,
+          "description": "Approximate maximum size (in KB) of file content included in AI prompts."
+        },
+        "vivaMate.maxFileLines": {
+          "type": "number",
+          "default": 150,
+          "minimum": 20,
+          "maximum": 2000,
+          "description": "Maximum number of lines read from a single file during analysis."
+        },
+        "vivaMate.extraIgnores": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Additional glob patterns to exclude from workspace analysis."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "node esbuild.js",
+    "watch": "node esbuild.js --watch",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.webview.json",
+    "test:unit": "npm run compile && mocha \"dist/test/unit/*.test.js\"",
+    "test:integration": "npm run compile && vscode-test",
+    "test": "npm run test:unit && npm run test:integration"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^20.19.0",
+    "@types/vscode": "^1.95.0",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.5.1",
+    "esbuild": "^0.25.0",
+    "mocha": "^11.0.0",
+    "typescript": "^5.8.0"
+  },
+  "allowScripts": {
+    "esbuild@0.25.12": true
+  }
+}

@@ -1,0 +1,14 @@
+# Files excluded from the packaged .vsix — keep the extension small.
+.vscode/**
+src/**
+webview-ui/**
+test/**
+node_modules/**
+dist/webview/main.js.map
+dist/extension.js.map
+dist/test/**
+esbuild.js
+.gitignore
+package-lock.json
+tsconfig.json
+tsconfig.webview.json

@@ -1,0 +1,21 @@
+
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "npm: compile",
+      "type": "process",
+      "command": "npm.cmd",
+      "args": ["run", "compile"],
+      "problemMatcher": "$esbuild"
+    },
+    {
+      "label": "npm: watch",
+      "type": "process",
+      "command": "npm.cmd",
+      "args": ["run", "watch"],
+      "isBackground": true,
+      "problemMatcher": "$esbuild"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <!-- Strict CSP: only our bundled script and stylesheet, no inline JS, no remote resources. -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none'; style-src %CSP_SOURCE% 'unsafe-inline'; script-src 'nonce-%NONCE%'; img-src %CSP_SOURCE% data:;" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VivaMate</title>
+  <link rel="stylesheet" href="%STYLE%" />
+</head>
+<body>
+  <header class="header">
+    <h1>VivaMate AI</h1>
+    <span class="badge" id="status">ready</span>
+  </header>
+
+  <main class="content">
+    <p class="hint">
+      Understand your project, generate viva questions, and practise mock vivas —
+      grounded in <strong>this workspace</strong>.
+    </p>
+
+    <button id="analyzeBtn" class="primary" type="button">Analyze workspace</button>
+
+    <section id="overview" class="overview" hidden></section>
+    <section id="output" class="output" aria-live="polite"></section>
+  </main>
+
+  <script nonce="%NONCE%" src="%SCRIPT%"></script>
+</body>
+</html>
