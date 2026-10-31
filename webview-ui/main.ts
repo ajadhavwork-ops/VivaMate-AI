@@ -19,7 +19,7 @@ import {
   setBusy,
   showOverviewLoading,
 } from './views/overview';
-import { initExplorer, renderExplorerError, setExplorerData, showExplorerLoading } from './views/explorerView';
+import { initExplorer, renderExplorerError, setExplorerData, setExplorerDetail, showExplorerLoading } from './views/explorerView';
 import { initAssistant } from './views/assistantView';
 import { initPrep } from './views/prepView';
 import { initMockViva } from './views/mockVivaView';
@@ -103,6 +103,10 @@ window.addEventListener('message', (event: MessageEvent) => {
       setExplorerData(message.payload);
       setStatus('ready');
       setBusy(false);
+      return;
+    }
+    case 'fileInsights': {
+      setExplorerDetail(message.payload);
       return;
     }
     case 'error': {

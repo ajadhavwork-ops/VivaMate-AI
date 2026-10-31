@@ -184,3 +184,250 @@
     display: none; /* sizes hide first; tooltips still carry them */
   }
 }
+
+/* ============================================================================
+   File-detail panel (P3.3) — symbols / imports / configuration insights.
+   Maps tokens from design/theme.css; no colors are hard-coded here.
+   ========================================================================== */
+
+.vm-file-detail {
+  margin: var(--vm-space-2) 0;
+  border: 1px solid var(--vm-border);
+  border-radius: var(--vm-radius-md);
+  background: var(--vm-surface-raised);
+  overflow: hidden;
+}
+
+.vm-file-detail-header {
+  display: flex;
+  align-items: center;
+  gap: var(--vm-space-2);
+  padding: var(--vm-space-2) var(--vm-space-3);
+  background: var(--vm-overlay-soft);
+  border-bottom: 1px solid var(--vm-border);
+}
+
+.vm-file-detail-path {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--vm-font-mono);
+  font-size: 0.95em;
+}
+
+.vm-file-detail-open {
+  flex: none;
+}
+
+/* Compact button variant for the detail header (used nowhere else). */
+.vm-btn--small {
+  font-size: 0.9em;
+  padding: 2px 10px;
+}
+
+.vm-file-detail-close {
+  flex: none;
+  border: none;
+  background: transparent;
+  color: var(--vm-text-dim);
+  cursor: pointer;
+  font-size: 1em;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: var(--vm-radius-sm, 4px);
+}
+
+.vm-file-detail-close:hover,
+.vm-file-detail-close:focus-visible {
+  color: var(--vm-text);
+  background: var(--vm-overlay-soft);
+}
+
+.vm-file-detail-body {
+  max-height: 45vh; /* grows inward; the tree stays reachable below */
+  overflow-y: auto;
+  padding: var(--vm-space-2) var(--vm-space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--vm-space-3);
+}
+
+.vm-detail-loading {
+  margin: 0 0 var(--vm-space-1, 4px) 0;
+}
+
+/* Notices — every empty/limited state is explained inline. */
+.vm-detail-notices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vm-space-1, 4px);
+}
+
+.vm-detail-notice {
+  margin: 0;
+  font-size: 0.92em;
+  line-height: 1.4;
+  padding: var(--vm-space-1, 4px) var(--vm-space-2);
+  border-radius: var(--vm-radius-sm, 4px);
+}
+
+.vm-detail-notice--info {
+  background: var(--vm-overlay-soft);
+  color: var(--vm-text-dim);
+}
+
+.vm-detail-notice--warning {
+  background: var(--vm-accent-soft);
+  color: var(--vm-text);
+}
+
+.vm-detail-meta {
+  margin: 0;
+  font-size: 0.9em;
+}
+
+/* Sections */
+.vm-detail-section-title {
+  margin: 0 0 var(--vm-space-1, 4px) 0;
+  font-size: 0.78em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--vm-text-dim);
+}
+
+.vm-detail-section-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vm-space-1, 4px);
+}
+
+.vm-detail-null {
+  margin: 0;
+  font-size: 0.92em;
+  font-style: italic;
+}
+
+/* Symbols */
+.vm-symbol-list,
+.vm-import-list,
+.vm-config-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-family: var(--vm-font-mono);
+  font-size: 0.92em;
+}
+
+.vm-symbol-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--vm-space-2);
+  padding: 2px 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.vm-symbol-kind {
+  flex: none;
+  min-width: 7ch;
+  color: var(--vm-accent);
+  font-size: 0.85em;
+}
+
+.vm-symbol-name {
+  flex: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vm-symbol-line {
+  flex: none;
+  font-size: 0.85em;
+}
+
+/* Imports */
+.vm-import-group-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--vm-space-2);
+  margin-top: var(--vm-space-1, 4px);
+}
+
+.vm-import-group-label {
+  font-size: 0.85em;
+  font-weight: 600;
+  color: var(--vm-text-dim);
+}
+
+.vm-import-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--vm-space-1, 4px);
+  padding: 2px 0;
+  min-width: 0;
+}
+
+.vm-import-spec {
+  flex: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vm-import-arrow {
+  flex: none;
+  color: var(--vm-text-dim);
+}
+
+.vm-import-row .vm-filelink {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Configuration entries — key paths + structural type only. */
+.vm-config-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--vm-space-2);
+  padding: 2px 0;
+  min-width: 0;
+}
+
+.vm-config-path {
+  flex: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vm-config-type,
+.vm-config-value {
+  flex: none;
+  font-size: 0.85em;
+}
+
+.vm-config-value {
+  /* Whitelisted safe metadata only (name/version/license) — still dimmed. */
+  font-family: var(--vm-font-mono);
+}
+
+/* Narrow-sidebar adjustments */
+@media (max-width: 250px) {
+  .vm-file-detail-open {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+  .vm-symbol-kind {
+    min-width: 5ch;
+  }
+  .vm-detail-meta,
+  .vm-symbol-line {
+    display: none; /* tooltips and counts still carry the detail */
+  }
+}

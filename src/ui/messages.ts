@@ -7,6 +7,11 @@
  * through these JSON messages.
  */
 
+import type { ImportKind } from '../analysis/importsScanner';
+import type { SymbolInfo, SymbolSource } from '../analysis/symbols';
+import type { ConfigInsight } from '../analysis/configInsights';
+import type { FileContentMeta } from '../analysis/contentReader';
+
 export interface AnalysisSummary {
   generatedAt: string;
   workspaceName: string;
@@ -96,10 +101,45 @@ export type HostToWebviewMessage =
   | { type: 'hello'; payload?: { version: string } }
   | { type: 'analysisStarted' }
   | { type: 'analysis'; payload: AnalysisSummary }
+  | { type: 'fileInsights'; payload: FileInsightsPayload }
   | { type: 'error'; payload: AnalysisError };
+
+/**
+ * Per-file insight slice, built by the host from the persisted profile when
+ * the user selects a file in the Explorer. Every questionable case is an
+ * explicit flag — the UI never has to guess.
+ */
+export interface FileInsightsPayload {
+  relativePath: string;
+  /** False for profiles produced before P3.2 — UI shows "re-run analysis". */
+  hasContentLayer: boolean;
+  /** False when the path is not in the profile's kept-file list at all. */
+  onRecord: boolean;
+  /** True when the content pass actually planned/read this file. */
+  selectedForAnalysis: boolean;
+  /** Measured read metadata (present when the file went through the reader). */
+  readMeta?: FileContentMeta;
+  /** Symbol extraction result — absent when the file was never analyzed. */
+  symbols?: {
+    source: SymbolSource;
+    truncated?: boolean;
+    entries: SymbolInfo[];
+  };
+  /** Outgoing import edges for this file — absent without a content layer. */
+  imports?: {
+    entries: Array<{ kind: ImportKind; spec: string; to?: string }>;
+    /** Files whose resolved imports point AT this file. */
+    incoming: string[];
+  };
+  /** True when the ORIGINAL import scan hit its caps (edges may be missing). */
+  importsTruncated?: boolean;
+  /** Structural configuration insights — absent when not a config file. */
+  config?: ConfigInsight;
+}
 
 export type WebviewToHostMessage =
   | { type: 'ready' }
   | { type: 'analyzeRequested' }
   | { type: 'webviewLoaded' }
-  | { type: 'openFile'; payload: { path: string } };
+  | { type: 'openFile'; payload: { path: string } }
+  | { type: 'fileInsightsRequested'; payload: { path: string } };

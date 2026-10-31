@@ -4,6 +4,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import type { HostToWebviewMessage, WebviewToHostMessage } from './messages';
 import { loadProfile } from '../analysis/profileStore';
+import { buildFileInsights } from '../analysis/fileInsightsQuery';
 import { toSummary } from '../analysis/profile';
 
 /**
@@ -61,10 +62,35 @@ export class PanelHost implements vscode.WebviewViewProvider {
       case 'openFile':
         await this.openWorkspaceFile(message.payload.path);
         return;
+      case 'fileInsightsRequested':
+        await this.sendFileInsights(message.payload.path);
+        return;
       case 'ready':
         // Reserved for future use.
         return;
     }
+  }
+
+  /**
+   * Builds the per-file insight slice from the persisted profile and pushes
+   * it to the webview. ALWAYS answers — legacy/off-record/legal-absent cases
+   * produce an honest empty payload (explicit flags) instead of silence, so
+   * the UI never waits for a reply that never comes.
+   */
+  private async sendFileInsights(relativePath: string): Promise<void> {
+    const profile = await loadProfile(this.context);
+    if (profile !== undefined && profile.schemaVersion !== 1) {
+      // Unknown future schema: answer with the same honest empty payload.
+      await this.postMessage({
+        type: 'fileInsights',
+        payload: { relativePath, hasContentLayer: false, onRecord: false, selectedForAnalysis: false },
+      });
+      return;
+    }
+    await this.postMessage({
+      type: 'fileInsights',
+      payload: buildFileInsights(profile, relativePath),
+    });
   }
 
   private async sendCachedProfile(): Promise<void> {
