@@ -29,12 +29,67 @@ export interface AnalysisSummary {
    * summaries produced before P2.3 (and older cached profiles) stay valid.
    */
   allFiles?: Array<{ relativePath: string; sizeBytes: number }>;
-  /** True when allFiles was capped (partial list). */
-  allFilesTruncated?: boolean;
+  /** Measured scan counters. Optional — absent in older cached profiles. */
+  scan?: ScanStats;
+  /** Measured P3.2 content-layer aggregate. Optional — absent before P3.2. */
+  content?: ContentSummary;
+}
+
+/** Measurable scan counters — every number is actually observed by the walker. */
+export interface ScanStats {
+  /** Files kept after privacy filtering (equals totalFiles). */
+  keptFiles: number;
+  /** Directory entries pruned because their name matched ignore rules. */
+  ignoredDirs: number;
+  /** Discovered files excluded by ignore rules (names, secrets, binaries). */
+  ignoredFiles: number;
+  /** Discovered files excluded because they exceed the size cap. */
+  skippedBySize: number;
+  /** Directories NOT explored because they are deeper than the depth cap. Their contents were never discovered, so no file count can exist for them. */
+  skippedByDepthDirs: number;
+  /** Directories that could not be read (permissions/IO errors). */
+  unreadableDirs: number;
+  /** Files which vanished or could not be stat'ed between listing and measuring. */
+  unreadableFiles: number;
+  /** Traversal stopped because the kept-file cap was reached. */
+  fileCapReached: boolean;
+  /** The walk refused to enter at least one directory due to depth. */
+  depthLimitReached: boolean;
 }
 
 export interface AnalysisError {
   message: string;
+}
+
+/**
+ * Measured aggregate of the P3.2 content-layer pass. Counts only — no file
+ * content, no symbol lists (they live in the persisted profile only).
+ * Optional so summaries produced before P3.2 stay valid.
+ */
+export interface ContentSummary {
+  /** Selection plan size actually passed to the reader. */
+  filesPlanned: number;
+  filesRead: number;
+  filesUnreadable: number;
+  filesExcluded: number;
+  filesSkippedBudget: number;
+  filesSkippedCancellation: number;
+  truncatedFiles: number;
+  budgetChars: number;
+  totalCharsRead: number;
+  /** Symbol extraction outcome per source kind. */
+  symbolFilesProvider: number;
+  symbolFilesFallback: number;
+  symbolFilesUnsupported: number;
+  totalSymbols: number;
+  /** Import scan outcome. */
+  importFilesScanned: number;
+  importEdgesLocal: number;
+  importEdgesPackage: number;
+  importEdgesUnresolved: number;
+  importsTruncated: boolean;
+  /** Config insight outcome. */
+  configFiles: number;
 }
 
 export type HostToWebviewMessage =

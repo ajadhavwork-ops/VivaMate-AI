@@ -3,7 +3,8 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { createIgnoreRules } from '../../src/analysis/ignoreRules';
-import { walkWorkspace } from '../../src/analysis/fileWalker';
+import { walkWorkspace, DEFAULT_MAX_FILES, DEFAULT_MAX_DEPTH } from '../../src/analysis/fileWalker';
+import type { WalkResult } from '../../src/analysis/fileWalker';
 
 describe('fileWalker', () => {
   let root: string;
@@ -82,5 +83,146 @@ describe('fileWalker', () => {
   it('returns an empty result for a missing root', async () => {
     const { files } = await walkWorkspace(path.join(root, 'does-not-exist'), createIgnoreRules());
     assert.strictEqual(files.length, 0);
+  });
+
+  it('exposes the default limits as bounded constants', () => {
+    assert.strictEqual(DEFAULT_MAX_FILES, 5000);
+    assert.strictEqual(DEFAULT_MAX_DEPTH, 12);
+  });
+});
+
+describe('fileWalker — scan counters', () => {
+  let dirRoot: string;
+
+  beforeEach(function setup(this: Mocha.Context) {
+    this.timeout(10_000);
+    dirRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'vivamate-scan-'));
+  });
+
+  afterEach(function teardown() {
+    if (dirRoot) fs.rmSync(dirRoot, { recursive: true, force: true });
+  });
+
+  function make(rel: string, content = 'x'): void {
+    const abs = path.join(dirRoot, ...rel.split('/'));
+    fs.mkdirSync(path.dirname(abs), { recursive: true });
+    fs.writeFileSync(abs, content, 'utf8');
+  }
+
+  function makeDir(rel: string): void {
+    fs.mkdirSync(path.join(dirRoot, ...rel.split('/')), { recursive: true });
+  }
+
+  it('counts kept files exactly', async () => {
+    make('a.ts');
+    make('b.ts');
+    make('c.md');
+    const result = await walkWorkspace(dirRoot, createIgnoreRules());
+    assert.strictEqual(result.stats.keptFiles, 3);
+    assert.strictEqual(result.limitReached, false);
+    assert.strictEqual(result.fileCapReached, false);
+    assert.strictEqual(result.depthLimitReached, false);
+  });
+
+  it('counts ignored directories and never counts files inside pruned dirs', async () => {
+    makeDir('node_modules');
+    make('node_modules/lib.js');
+    makeDir('node_modules/sub');
+    make('node_modules/sub/lib.js'); // "discovered"? NO — dir pruned first
+    make('keep.ts');
+    const result = await walkWorkspace(dirRoot, createIgnoreRules());
+    assert.strictEqual(result.stats.ignoredDirs, 1);
+    assert.strictEqual(result.stats.keptFiles, 1);
+    assert.strictEqual(result.stats.ignoredFiles, 0); // contents never discovered
+  });
+
+  it('counts ignored files by name/secrets/binaries — and not duplicates', async () => {
+    make('app.ts');
+    make('.env');
+    make('server.pem');
+    make('icon.png');
+    make('.env.example'); // safe variant — kept
+    const result = await walkWorkspace(dirRoot, createIgnoreRules());
+    assert.strictEqual(result.stats.keptFiles, 2); // app.ts + .env.example
+    assert.strictEqual(result.stats.ignoredFiles, 3); // .env, server.pem, icon.png
+    assert.strictEqual(result.stats.skippedBySize, 0);
+  });
+
+  it('counts oversized files separately from name matches (no double counting)', async () => {
+    make('huge.bin', 'x'.repeat(300 * 1024)); // binary ext, oversized
+    make('big.json', 'x'.repeat(300 * 1024)); // plain too-large file
+    make('ok.json', 'x'.repeat(10));
+    const result = await walkWorkspace(dirRoot, createIgnoreRules());
+    // huge.bin hits the binary-extension rule FIRST (historical precedence),
+    // so it is counted exactly once — as ignored, not additionally as size.
+    assert.strictEqual(result.stats.ignoredFiles, 1);
+    assert.strictEqual(result.stats.skippedBySize, 1);
+    assert.strictEqual(result.stats.keptFiles, 1);
+  });
+
+  it('kept safe secret variants even when oversized (historical exemption)', async () => {
+    make('.env.example', 'x'.repeat(300 * 1024)); // matches .env.* glob, SAFE variant
+    const result = await walkWorkspace(dirRoot, createIgnoreRules());
+    assert.strictEqual(result.stats.keptFiles, 1);
+    assert.strictEqual(result.stats.skippedBySize, 0);
+  });
+
+  it('counts directories beyond the depth cap without claiming their files', async () => {
+    makeDir('d0/d1/d2/d3');
+    make('d0/d1/d2/deepfile.ts'); // at depth 2 relative? d0=1,d1=2,d2=3 → beyond maxDepth 2
+    make('d0/d1/kept.ts'); // d1 entered (depth 2 ≤ 2), file kept
+    const result = await walkWorkspace(dirRoot, createIgnoreRules(), { maxDepth: 2 });
+    assert.strictEqual(result.depthLimitReached, true);
+    assert.strictEqual(result.stats.skippedByDepthDirs, 1); // only d2 refused
+    assert.strictEqual(result.stats.keptFiles, 1); // only d0/d1/kept.ts
+    assert.strictEqual(result.fileCapReached, false);
+  });
+
+  it('flags fileCapReached when the kept-file cap stops traversal', async () => {
+    for (let i = 0; i < 5; i++) make(`f${i}.ts`);
+    const result = await walkWorkspace(dirRoot, createIgnoreRules(), { maxFiles: 2 });
+    assert.strictEqual(result.fileCapReached, true);
+    assert.strictEqual(result.depthLimitReached, false);
+    assert.strictEqual(result.limitReached, true);
+    assert.strictEqual(result.stats.keptFiles, 2);
+  });
+
+  it('combined caps set both flags but keep counters disjoint', async () => {
+    // depth chain plus >maxFiles shallow files
+    makeDir('deep/very/very/very/very');
+    for (let i = 0; i < 5; i++) make(`s${i}.ts`);
+    make('deep/x.ts'); // depth 1 — kept (if cap not already hit)
+    const result = await walkWorkspace(dirRoot, createIgnoreRules(), { maxFiles: 3, maxDepth: 2 });
+    assert.strictEqual(result.fileCapReached, true);
+    assert.strictEqual(result.stats.keptFiles, 3);
+    assert.strictEqual(result.limitReached, true);
+    // All counter buckets are disjoint by construction: kept + ignored + size
+    // + depth-unexplored dirs never overlap on the same entry.
+    assert.ok(result.stats.ignoredFiles + result.stats.skippedBySize <= 5);
+  });
+
+  it('supports a custom maxDepth that fits deep projects', async () => {
+    make('a/b/c/d/e/g.ts'); // a real FILE six levels deep
+    const shallow = await walkWorkspace(dirRoot, createIgnoreRules(), { maxDepth: 2 });
+    const deeper = await walkWorkspace(dirRoot, createIgnoreRules(), { maxDepth: 6 });
+    assert.strictEqual(shallow.stats.skippedByDepthDirs > 0, true);
+    assert.strictEqual(deeper.stats.keptFiles, 1);
+    assert.strictEqual(deeper.stats.skippedByDepthDirs, 0);
+  });
+
+  it('stats include zeroed counters for a clean tree', async () => {
+    make('main.ts');
+    const result: WalkResult = await walkWorkspace(dirRoot, createIgnoreRules());
+    assert.deepStrictEqual(result.stats, {
+      keptFiles: 1,
+      ignoredDirs: 0,
+      ignoredFiles: 0,
+      skippedBySize: 0,
+      skippedByDepthDirs: 0,
+      unreadableDirs: 0,
+      unreadableFiles: 0,
+      fileCapReached: false,
+      depthLimitReached: false,
+    });
   });
 });

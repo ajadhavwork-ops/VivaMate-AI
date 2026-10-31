@@ -20,6 +20,7 @@ import {
 } from '../utils/fileTree';
 import { categorizeFiles, type FileCategory } from '../utils/fileCategories';
 import { formatBytes } from '../utils/format';
+import { buildScanNotice } from '../utils/scanStatus';
 import type { AnalysisSummary } from '../../src/ui/messages';
 
 // ---------------------------------------------------------------------------
@@ -122,18 +123,13 @@ export function setExplorerData(summary: AnalysisSummary): void {
   hasAnalysis = true;
   files = summary.allFiles ?? [];
 
-  const isPartial = summary.allFilesTruncated === true || summary.limitReached;
+  const notice = buildScanNotice(summary);
   if (bannerEl) {
-    bannerEl.hidden = !isPartial;
-    if (isPartial) {
+    bannerEl.hidden = notice.severity === 'ok';
+    if (notice.severity !== 'ok') {
       bannerEl.replaceChildren(
         el('span', { className: 'vm-banner-dot' }),
-        el('p', {
-          className: 'vm-banner-text',
-          text: summary.limitReached
-            ? 'Scan limits were reached — this list may be incomplete. Raise "vivaMate.analysisBudgetKb" or "vivaMate.maxFileLines" in Settings for full coverage.'
-            : 'The stored file list was capped — this view may be incomplete.',
-        })
+        el('p', { className: 'vm-banner-text', text: notice.lines.join(' ') })
       );
     }
   }

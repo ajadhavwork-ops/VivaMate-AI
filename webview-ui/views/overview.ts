@@ -18,6 +18,7 @@ import {
 import { vscodeApi } from '../state';
 import type { AnalysisSummary, WebviewToHostMessage } from '../../src/ui/messages';
 import { formatBytes, middleTruncate, relativeTime } from '../utils/format';
+import { buildScanNotice } from '../utils/scanStatus';
 
 // ---------------------------------------------------------------------------
 // Elements (exist in index.html)
@@ -157,9 +158,8 @@ export function renderAnalysis(summary: AnalysisSummary): void {
   overviewEl.appendChild(technologiesCard(summary));
   overviewEl.appendChild(entryPointsCard(summary));
   overviewEl.appendChild(keyFilesCard(summary));
-  if (summary.limitReached) {
-    overviewEl.appendChild(limitBanner());
-  }
+  // Always show an honest scan status: complete (green) or partial (orange).
+  overviewEl.appendChild(limitBanner(summary));
 }
 
 // --- Hero: name + freshness + fingerprint + status --------------------------
@@ -169,9 +169,10 @@ function heroCard(summary: AnalysisSummary): HTMLElement {
 
   const titleRow = el('div', { className: 'vm-hero-titlerow' });
   titleRow.appendChild(el('h2', { className: 'vm-hero-title', text: summary.workspaceName }));
+  const notice = buildScanNotice(summary);
   titleRow.appendChild(el('span', {
-    className: `vm-pill ${summary.limitReached ? 'vm-pill--warning' : 'vm-pill--ok'}`,
-    text: summary.limitReached ? 'partial scan' : 'scan complete',
+    className: `vm-pill ${notice.severity === 'ok' ? 'vm-pill--ok' : 'vm-pill--warning'}`,
+    text: notice.severity === 'ok' ? 'scan complete' : 'partial scan',
   }));
   root.appendChild(titleRow);
 
@@ -354,15 +355,23 @@ function keyFilesCard(summary: AnalysisSummary): HTMLElement {
   return keyCard.root;
 }
 
-// --- Scan-limit warning banner ------------------------------------------------------------
+// --- Scan-status banner (honest, telemetry-driven) -------------------------------------
 
-function limitBanner(): HTMLElement {
-  const banner = el('div', { className: 'vm-banner vm-banner--warning', attrs: { role: 'status' } });
-  banner.appendChild(el('span', { className: 'vm-banner-icon', children: [el('span', { className: 'vm-banner-dot' })] }));
-  const text = el('p', {
-    className: 'vm-banner-text',
-    text: 'Scan limits reached — very deep or very large files were skipped. Raise "vivaMate.maxFileLines" or "vivaMate.analysisBudgetKb" in Settings if you need full coverage.',
-  });
+function limitBanner(summary: AnalysisSummary): HTMLElement {
+  const notice = buildScanNotice(summary);
+  const severityClass =
+    notice.severity === 'warning'
+      ? 'vm-banner--warning'
+      : notice.severity === 'partial'
+        ? 'vm-banner--warning'
+        : 'vm-banner--ok';
+
+  const banner = el('div', { className: `vm-banner ${severityClass}`, attrs: { role: 'status' } });
+  banner.appendChild(el('span', { className: 'vm-banner-dot' }));
+  const text = el('div', { className: 'vm-banner-text' });
+  for (const line of notice.lines) {
+    text.appendChild(el('p', { className: 'vm-banner-text-item', text: line }));
+  }
   banner.appendChild(text);
   return banner;
 }

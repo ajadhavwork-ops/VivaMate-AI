@@ -12,12 +12,31 @@ import * as crypto from 'crypto';
 import type { WalkedFile } from './fileWalker';
 import type { DetectedManifest, PackageJsonSummary } from './manifestDetector';
 import type { ContentPlanItem } from './filePrioritizer';
-import type { AnalysisSummary } from '../ui/messages';
+import type { ContentReadResult } from './contentReader';
+import type { FileSymbols, SymbolInfo } from './symbols';
+import type { ImportsModel } from './importsScanner';
+import type { ConfigInsight } from './configInsights';
+import type { AnalysisSummary, ContentSummary, ScanStats } from '../ui/messages';
 
 export interface LanguageStat {
   name: string;
   files: number;
   totalBytes: number;
+}
+
+/**
+ * P3.2 content-layer results — structured insights ONLY.
+ * Raw source content is never part of this type or the persisted profile.
+ */
+export interface ContentLayerData {
+  /** Measured read metadata (statuses, counters, budget usage). */
+  meta: ContentReadResult;
+  /** Per-file symbols with an explicit `source` label. */
+  symbols: FileSymbols[];
+  /** De-duplicated import edges with resolution kinds. */
+  imports: ImportsModel;
+  /** Structural configuration insights (deny-by-default). */
+  configs: ConfigInsight[];
 }
 
 export interface ProjectProfile {
@@ -30,13 +49,17 @@ export interface ProjectProfile {
   /** True when the walk stopped early (cap on files or depth). */
   limitReached: boolean;
   /**
-   * The complete kept-file list (paths + sizes, privacy-filtered) for the
-   * Explorer. Optional so profiles saved before P2.3 stay loadable; capped
-   * at MAX_ALL_FILES with allFilesTruncated noting the cut.
+   * Measured scan counters. Optional so profiles saved before P3.1 stay
+   * loadable; absent means "no detailed telemetry recorded".
    */
+  scan?: ScanStats;
+  /** Complete kept-file list for the Explorer (paths + sizes, privacy-filtered). */
   allFiles?: WalkedFile[];
-  /** True when allFiles hit its cap and the list is incomplete. */
-  allFilesTruncated?: boolean;
+  /**
+   * P3.2 content-layer insights (optional so pre-P3.2 cached profiles stay
+   * loadable — they simply degrade to "run an analysis" states).
+   */
+  content?: ContentLayerData;
   /**
    * Actual dependency names collected from the project's package.json
    * (optional — absent when no package.json exists or it was unreadable).
@@ -92,13 +115,11 @@ export interface BuildProfileArgs {
   entryPoints: readonly string[];
   plan: readonly ContentPlanItem[];
   limitReached: boolean;
+  /** Measured walk counters. */
+  scan: ScanStats;
+  /** P3.2 content-layer results (optional — absent when reading was skipped). */
+  content?: ContentLayerData;
 }
-
-/**
- * Upper bound for the Explorer file list kept in the profile. Matches the
- * walker's default file cap, so in normal operation nothing is truncated.
- */
-export const MAX_ALL_FILES = 5000;
 
 export function buildProfile(args: BuildProfileArgs): ProjectProfile {
   const totalSizeBytes = args.files.reduce((sum, f) => sum + f.sizeBytes, 0);
@@ -118,6 +139,7 @@ export function buildProfile(args: BuildProfileArgs): ProjectProfile {
     manifests: [...args.manifests],
     entryPoints: [...args.entryPoints],
     keyFiles: args.plan.map((item) => item.relativePath),
+    scan: { ...args.scan },
   };
   // Only REAL dependency names (from an analyzable package.json) surface
   // here — never inventions. Old cached profiles keep working (optional).
@@ -126,14 +148,18 @@ export function buildProfile(args: BuildProfileArgs): ProjectProfile {
     profile.technologies = technologies.slice(0, 12);
   }
   // Explorer data: keep plain-path copies so the persisted profile does not
-  // share array references with the walk result, capped for safety.
+  // share array references with the walk result. The walker already caps
+  // the list at its configured maxFiles, so no extra truncation is needed.
   if (args.files.length > 0) {
-    if (args.files.length > MAX_ALL_FILES) {
-      profile.allFiles = args.files.slice(0, MAX_ALL_FILES);
-      profile.allFilesTruncated = true;
-    } else {
-      profile.allFiles = [...args.files];
-    }
+    profile.allFiles = args.files.map((f) => ({
+      relativePath: f.relativePath,
+      sizeBytes: f.sizeBytes,
+    }));
+  }
+  // Content-layer data is copied verbatim (all structured, no raw content)
+  // only when the content pass actually ran.
+  if (args.content) {
+    profile.content = args.content;
   }
   return profile;
 }
@@ -157,6 +183,44 @@ export function toSummary(profile: ProjectProfile): AnalysisSummary {
     entryPoints: profile.entryPoints,
     keyFiles: profile.keyFiles.slice(0, 12),
     allFiles: profile.allFiles?.map((f) => ({ relativePath: f.relativePath, sizeBytes: f.sizeBytes })),
-    allFilesTruncated: profile.allFilesTruncated,
+    scan: profile.scan,
+    ...profileToContentSummary(profile),
+  };
+}
+
+/** Builds the measured summary aggregate from the content layer (or omits it). */
+function profileToContentSummary(profile: ProjectProfile): { content?: ContentSummary } {
+  const layer = profile.content;
+  if (!layer) return {};
+  const symbolFilesProvider = layer.symbols.filter((s) => s.source === 'provider').length;
+  const symbolFilesFallback = layer.symbols.filter((s) => s.source === 'fallback').length;
+  const symbolFilesUnsupported = layer.symbols.filter((s) => s.source === 'unsupported').length;
+  const totalSymbols = layer.symbols.reduce((sum, s) => {
+    const countNested = (list: readonly SymbolInfo[]): number =>
+      list.reduce((acc, sym) => acc + 1 + countNested(sym.children ?? []), 0);
+    return sum + countNested(s.symbols);
+  }, 0);
+  return {
+    content: {
+      filesPlanned: layer.meta.files.length,
+      filesRead: layer.meta.filesRead,
+      filesUnreadable: layer.meta.filesUnreadable,
+      filesExcluded: layer.meta.filesExcluded,
+      filesSkippedBudget: layer.meta.filesSkippedBudget,
+      filesSkippedCancellation: layer.meta.filesSkippedCancellation,
+      truncatedFiles: layer.meta.truncatedFiles,
+      budgetChars: layer.meta.budgetChars,
+      totalCharsRead: layer.meta.totalCharsRead,
+      symbolFilesProvider,
+      symbolFilesFallback,
+      symbolFilesUnsupported,
+      totalSymbols,
+      importFilesScanned: layer.imports.filesScanned,
+      importEdgesLocal: layer.imports.counts.local,
+      importEdgesPackage: layer.imports.counts.package,
+      importEdgesUnresolved: layer.imports.counts.unresolved,
+      importsTruncated: layer.imports.truncated,
+      configFiles: layer.configs.length,
+    },
   };
 }

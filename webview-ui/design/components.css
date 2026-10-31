@@ -616,6 +616,22 @@ body {
   border-color: color-mix(in srgb, var(--vm-warning) 40%, transparent);
 }
 
+.vm-banner--ok {
+  color: var(--vm-success);
+  background: color-mix(in srgb, var(--vm-success) 9%, transparent);
+  border-color: color-mix(in srgb, var(--vm-success) 35%, transparent);
+}
+
+.vm-banner-text-item {
+  margin: 0 0 var(--vm-space-1);
+  font-size: 0.9em;
+  line-height: 1.4;
+}
+
+.vm-banner-text-item:last-child {
+  margin-bottom: 0;
+}
+
 .vm-banner-icon {
   display: inline-flex;
   padding-top: 2px;

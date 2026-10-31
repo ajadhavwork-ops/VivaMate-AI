@@ -120,14 +120,26 @@ export function isDirectoryIgnored(rules: IgnoreRuleSet, relativePath: string): 
   return rules.fileGlobs.some((re) => re.test(rp));
 }
 
-export function isFileIgnored(
+/**
+ * Why a file is (or is not) kept — used by the walker for honest skip
+ * counters. The precedence MUST mirror the historical isFileIgnored order:
+ *   1. inside an ignored directory
+ *   2. binary/media extension
+ *   3. name/glob match (except safe secret variants like .env.example)
+ *   4. oversized (> maxFileBytes)
+ * An oversized, glob-matched, non-secret file is therefore reported as
+ * 'ignoredName' (matched first historically) — counted once, never twice.
+ */
+export type FileIgnoreReason = 'kept' | 'ignoredDir' | 'ignoredName' | 'skippedSize';
+
+export function fileIgnoreReason(
   rules: IgnoreRuleSet,
   relativePath: string,
   sizeBytes?: number
-): boolean {
+): FileIgnoreReason {
   const rp = toPosix(relativePath);
   for (const segment of rp.split('/')) {
-    if (rules.ignoredDirNames.has(segment.toLowerCase())) return true;
+    if (rules.ignoredDirNames.has(segment.toLowerCase())) return 'ignoredDir';
   }
 
   const base = toPosix(rp).split('/').pop() ?? rp;
@@ -135,14 +147,22 @@ export function isFileIgnored(
   const dot = lowerBase.lastIndexOf('.');
   const slash = lowerBase.lastIndexOf('/');
   const ext = dot > slash ? lowerBase.slice(dot + 1) : '';
-  if (ext && rules.binaryExtensions.has(ext)) return true;
+  if (ext && rules.binaryExtensions.has(ext)) return 'ignoredName';
 
   if (rules.fileGlobs.some((re) => re.test(rp))) {
     // Keep safe variants such as .env.example — they document required config
-    // without containing real secrets.
-    return !SAFE_SECRET_VARIANTS.test(lowerBase);
+    // without containing real secrets (even when oversized).
+    return SAFE_SECRET_VARIANTS.test(lowerBase) ? 'kept' : 'ignoredName';
   }
 
-  if (sizeBytes !== undefined && sizeBytes > rules.maxFileBytes) return true;
-  return false;
+  if (sizeBytes !== undefined && sizeBytes > rules.maxFileBytes) return 'skippedSize';
+  return 'kept';
+}
+
+export function isFileIgnored(
+  rules: IgnoreRuleSet,
+  relativePath: string,
+  sizeBytes?: number
+): boolean {
+  return fileIgnoreReason(rules, relativePath, sizeBytes) !== 'kept';
 }
